@@ -63,16 +63,12 @@ jobs:
           fi
           echo $file
           if [[ $file =~ ^packages/([a-z0-9-]*)/([a-z0-9-]*).subpackage.sh$ ]]; then
-            # subpackage, check if it was deleted or just updated
+            # A subpackage was modified, check if it was deleted or just updated
             pkg=${BASH_REMATCH[1]}
             subpkg=${BASH_REMATCH[2]}
             if [ ! -f "packages/${pkg}/${subpkg}.subpackage.sh" ]; then
               echo Deleted subpkg
               echo "$subpkg" >> ./deleted_packages.txt
-            else
-              # print subpkg to another list and concat with main list later
-              echo Added subpkg
-              echo "$subpkg" >> ./built_subpackages.txt
             fi
           elif [[ $file =~ ^packages/([a-z0-9-]*)/.*$ ]]; then
             # package, check if it was deleted or updated
@@ -83,6 +79,13 @@ jobs:
             else
               echo Built pkg
               echo "$pkg" >> ./built_packages.txt
+              # If there are subpackages we want to create a list of those
+              # as well
+              for file in $(find "packages/${pkg}/" -maxdepth 1 -type f -name \*.subpackage.sh | sort); do
+                echo "found subpackage $(basename ${file%%.subpackage.sh})"
+                echo "$(basename "${file%%.subpackage.sh}")" >> ./built_subpackages.txt
+                file=$(basename "${file%%.subpackage.sh}")
+              done
             fi
           fi
         done<<<${CHANGED_FILES}
