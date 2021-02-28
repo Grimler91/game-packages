@@ -91,6 +91,8 @@ jobs:
           mv ./deleted_packages.txt.tmp ./deleted_packages.txt
         fi
 
+        more ./built_packages.txt
+
         ./scripts/lint-packages.sh $(more ./built_packages.txt)
         ./start-builder.sh ./build-package.sh -a ${{ matrix.target_arch }} -I $(more ./built_packages.txt)
 
